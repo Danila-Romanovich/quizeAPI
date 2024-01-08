@@ -1,7 +1,12 @@
 package ru.quize.api.controllers;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import ru.quize.api.models.Question;
+import ru.quize.api.models.QuestionResponse;
 import ru.quize.api.params.GameParam;
+
+import java.util.List;
 
 
 @RestController
@@ -17,7 +22,7 @@ public class TriviaController {
             @RequestParam(name = "type", required = false) String answerType
     ) {
         if (numCategory != null) {
-            game.setNumCategory(numCategory+8);
+            game.setNumCategory(numCategory + 8);
         } else {
             game.setNumCategory(0);
         }
@@ -31,10 +36,33 @@ public class TriviaController {
         } else {
             game.setAnswerType("all");
         }
-        return restTemplate.getForObject(game.getUrl(), String.class);
+
+        String requestResult = restTemplate.getForObject(game.getUrl(), String.class);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        try {
+            // Преобразование JSON в объект
+            QuestionResponse questionResponse = objectMapper.readValue(requestResult, QuestionResponse.class);
+
+            // Теперь объект questionResponse, который содержит список вопросов
+            List<Question> questions = questionResponse.getResults();
+
+            // Пример использования данных
+            for (Question question : questions) {
+                System.out.println("Question: " + question.getQuestion());
+                System.out.println("Correct Answer: " + question.getCorrectAnswer());
+                System.out.println("Incorrect Answers: " + question.getIncorrectAnswers());
+                System.out.println("------------------------------");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return requestResult;
     }
 
-
+}
 /*      1 - General Knowledge
         2 - Books
         3 - Film
@@ -71,5 +99,3 @@ public class TriviaController {
         multiple
         boolean
  */
-
-}
