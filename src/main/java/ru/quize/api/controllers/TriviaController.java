@@ -1,11 +1,13 @@
 package ru.quize.api.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.text.StringEscapeUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import ru.quize.api.models.Question;
 import ru.quize.api.models.QuestionResponse;
 import ru.quize.api.params.GameParam;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -47,9 +49,12 @@ public class TriviaController {
 
             // Теперь объект questionResponse, который содержит список вопросов
             List<Question> questions = questionResponse.getResults();
-
+            decoding(questions);
             // Пример использования данных
             for (Question question : questions) {
+                System.out.println("Category: " + question.getCategory());
+                System.out.println("Difficulty: " + question.getDifficulty());
+                System.out.println("Type: " + question.getType());
                 System.out.println("Question: " + question.getQuestion());
                 System.out.println("Correct Answer: " + question.getCorrectAnswer());
                 System.out.println("Incorrect Answers: " + question.getIncorrectAnswers());
@@ -60,6 +65,21 @@ public class TriviaController {
         }
 
         return requestResult;
+    }
+
+    public void decoding (List<Question> questions) {
+        for (Question question : questions) {
+            question.setQuestion(StringEscapeUtils.unescapeHtml4(question.getQuestion()));
+            question.setCategory(StringEscapeUtils.unescapeHtml4(question.getCategory()));
+            question.setCorrectAnswer(StringEscapeUtils.unescapeHtml4(question.getCorrectAnswer()));
+
+            List<String> decodedIncorrectAnswers = new ArrayList<>();
+            for (String incorrectAnswer : question.getIncorrectAnswers()) {
+                decodedIncorrectAnswers.add(StringEscapeUtils.unescapeHtml4(incorrectAnswer));
+            }
+            question.setIncorrectAnswers(decodedIncorrectAnswers);
+
+        }
     }
 
 }
