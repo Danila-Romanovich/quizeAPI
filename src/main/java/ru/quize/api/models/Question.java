@@ -78,4 +78,16 @@ public class Question {
         this.correctAnswer = correctAnswer;
     }
 
+    @Override
+    public String toString() {
+        return "Question{" +
+                "category='" + category + '\'' +
+                ", difficulty='" + difficulty + '\'' +
+                ", type='" + type + '\'' +
+                ", question='" + question + '\'' +
+                ", correctAnswer='" + correctAnswer + '\'' +
+                ", incorrectAnswers=" + incorrectAnswers +
+                '}';
+    }
+
 }

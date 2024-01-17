@@ -71,13 +71,13 @@ public class GameParam {
     }
 
     private String checkDifficulty() {
-        if (this.difficulty == "all") {
+        if ("all".equals(this.difficulty)) {
             return "";
         } else return ("&difficulty=" + this.difficulty);
     }
 
     private String checkType() {
-        if (this.answerType == "all") {
+        if ("all".equals(this.answerType)) {
             return "";
         } else return ("&type=" + this.answerType);
     }

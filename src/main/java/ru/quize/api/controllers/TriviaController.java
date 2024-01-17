@@ -12,18 +12,19 @@ import java.util.List;
 
 
 @RestController
+@CrossOrigin(origins = "http://site")
 @RequestMapping("api/trivia")
 public class TriviaController {
     RestTemplate restTemplate = new RestTemplate();
     GameParam game = new GameParam(21);
 
     @GetMapping("/question") //Рандомный вопрос по любой теме с любой сложностью
-    public String getRandomQuestion(
+    public List<Question> getRandomQuestion(
             @RequestParam(name = "category", required = false) Integer numCategory,
             @RequestParam(name = "difficulty", required = false) String difficulty,
             @RequestParam(name = "type", required = false) String answerType
     ) {
-        if (numCategory != null) {
+        if (numCategory != null || numCategory != 0) {
             game.setNumCategory(numCategory + 8);
         } else {
             game.setNumCategory(0);
@@ -38,10 +39,11 @@ public class TriviaController {
         } else {
             game.setAnswerType("all");
         }
-
+        System.out.println(game.getUrl());
         String requestResult = restTemplate.getForObject(game.getUrl(), String.class);
-
         ObjectMapper objectMapper = new ObjectMapper();
+
+        List<Question> correctedQuestions = new ArrayList<>();
 
         try {
             // Преобразование JSON в объект
@@ -59,12 +61,16 @@ public class TriviaController {
                 System.out.println("Correct Answer: " + question.getCorrectAnswer());
                 System.out.println("Incorrect Answers: " + question.getIncorrectAnswers());
                 System.out.println("------------------------------");
+
+                correctedQuestions.add(question);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return requestResult;
+        System.out.println(correctedQuestions);
+
+        return correctedQuestions;
     }
 
     public void decoding (List<Question> questions) {
