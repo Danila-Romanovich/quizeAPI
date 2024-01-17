@@ -1,14 +1,19 @@
 package ru.quize.api.controllers;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.text.StringEscapeUtils;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import ru.quize.api.models.Question;
 import ru.quize.api.models.QuestionResponse;
 import ru.quize.api.params.GameParam;
 
-import java.util.ArrayList;
-import java.util.List;
+
+import java.util.*;
 
 
 @RestController
@@ -52,13 +57,15 @@ public class TriviaController {
             // Теперь объект questionResponse, который содержит список вопросов
             List<Question> questions = questionResponse.getResults();
             decoding(questions);
+
             // Пример использования данных
             for (Question question : questions) {
+                translate(question);
                 System.out.println("Category: " + question.getCategory());
                 System.out.println("Difficulty: " + question.getDifficulty());
                 System.out.println("Type: " + question.getType());
-                System.out.println("Question: " + question.getQuestion());
-                System.out.println("Correct Answer: " + question.getCorrectAnswer());
+                System.out.println("Вопрос: " + question.getQuestion());
+                System.out.println("Правильный ответ: " + question.getCorrectAnswer());
                 System.out.println("Incorrect Answers: " + question.getIncorrectAnswers());
                 System.out.println("------------------------------");
 
@@ -84,8 +91,67 @@ public class TriviaController {
                 decodedIncorrectAnswers.add(StringEscapeUtils.unescapeHtml4(incorrectAnswer));
             }
             question.setIncorrectAnswers(decodedIncorrectAnswers);
-
         }
+    }
+
+    private void translate(Question question) throws JsonProcessingException {
+        String url = "https://translate.api.cloud.yandex.net/translate/v2/translate";
+        String token = "t1.9euelZqMmo_InpeQjZGKzMfMysrMk-3rnpWansiQk8iJzsmLks-ckpXIlJTl9PdvKmBS-e8fTEfP3fT3L1ldUvnvH0xHz83n9euelZqRy8jKl5iQx5DKkZSTj8aTyu_8xeuelZqRy8jKl5iQx5DKkZSTj8aTyg.8OCLyejbFNkDb4qD5C25PdOmC4-0xtgsegKaerGvS6edGeOijDeQgd13-Ly_M7tNQFbhLnJEOuoXrNJDpMACDg";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.add("Authorization", "Bearer " + token);
+
+        String textForTranslate = mergeText(question);
+
+        Map<String, String> jsonData = new HashMap<>();
+        jsonData.put("folderId","b1gd2us8uvnukiqe937m");
+        jsonData.put("targetLanguageCode", "ru");
+        jsonData.put("texts", textForTranslate);
+
+        HttpEntity<Map<String,String>> request = new HttpEntity<>(jsonData, headers);
+        String response = restTemplate.postForObject(url, request, String.class);
+
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode obj = mapper.readTree(response);
+
+        String newText = String.valueOf(obj.get("translations").get(0).get("text").asText());
+        String delimiter = "\\|";
+        String[] resultArray = newText.split(delimiter);
+
+        List<String> incorrectAnswer = new ArrayList<>();
+
+        for (int i=0; i<resultArray.length; i++) {
+            if (i==0){
+                question.setQuestion(resultArray[i]);
+            } else if (i==1){
+                question.setCorrectAnswer(resultArray[i]);
+            } else {
+                incorrectAnswer.add(resultArray[i]);
+            }
+        }
+        question.setIncorrectAnswers(incorrectAnswer);
+    }
+
+    private String mergeText(Question question) {
+        List<String> textForTranslate = new ArrayList<>();
+        textForTranslate.add(question.getQuestion());
+        textForTranslate.add(question.getCorrectAnswer());
+        for (String incorrectAnswer : question.getIncorrectAnswers()) {
+            textForTranslate.add(StringEscapeUtils.unescapeHtml4(incorrectAnswer));
+        }
+        // Используем StringBuilder для склеивания строк с разделителем
+        StringBuilder result = new StringBuilder();
+        String delimiter = "| ";
+        for (String str : textForTranslate) {
+            result.append(str).append(delimiter);
+        }
+        // Удаляем последний добавленный разделитель, если список не пуст
+        if (!textForTranslate.isEmpty()) {
+            result.deleteCharAt(result.length() - 1);
+        }
+
+        return result.toString();
     }
 
 }
