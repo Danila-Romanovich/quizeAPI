@@ -17,7 +17,7 @@ import java.util.*;
 
 
 @RestController
-@CrossOrigin(origins = "http://site")
+@CrossOrigin(origins = "*")
 @RequestMapping("api/trivia")
 public class TriviaController {
     RestTemplate restTemplate = new RestTemplate();
@@ -96,7 +96,7 @@ public class TriviaController {
 
     private void translate(Question question) throws JsonProcessingException {
         String url = "https://translate.api.cloud.yandex.net/translate/v2/translate";
-        String token = "t1.9euelZqMmo_InpeQjZGKzMfMysrMk-3rnpWansiQk8iJzsmLks-ckpXIlJTl9PdvKmBS-e8fTEfP3fT3L1ldUvnvH0xHz83n9euelZqRy8jKl5iQx5DKkZSTj8aTyu_8xeuelZqRy8jKl5iQx5DKkZSTj8aTyg.8OCLyejbFNkDb4qD5C25PdOmC4-0xtgsegKaerGvS6edGeOijDeQgd13-Ly_M7tNQFbhLnJEOuoXrNJDpMACDg";
+        String token = "t1.9euelZqNx5OVy4mdjMmQi8ucy4yXne3rnpWansiQk8iJzsmLks-ckpXIlJTl9Pd5NF1S-e8aSx-a3fT3OWNaUvnvGksfms3n9euelZqNnsuenJGek57NyJGJnp3Jlu_8xeuelZqNnsuenJGek57NyJGJnp3Jlg.ITU0QAmxFLG82e7tyeWoLM4OqQg8dtZTof717Yo7Pb5V82hf9Q09HuBigGVdiB7tOVsiHSk11yr-AD4kcVJTAg";
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
